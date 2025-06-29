@@ -6,6 +6,14 @@ from sklearn.decomposition import PCA
 import plotly.express as px
 import requests
 from streamlit_lottie import st_lottie
+import requests
+
+url = "https://github.com/ruth1445/modatna/raw/main/Womens%20Clothing%20E-Commerce%20Reviews.csv"
+st.write(f"CSV File URL: {url}")
+
+# Test by reading directly from URL
+df = pd.read_csv(url)
+st.write(df.head())
 
 # ─── Page Config ───────────────────────────────────────────────────
 st.set_page_config(page_title="Modatna", layout="wide")
