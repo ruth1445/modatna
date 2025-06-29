@@ -10,30 +10,48 @@ from streamlit_lottie import st_lottie
 # ─── Page Config ───────────────────────────────────────────────────
 st.set_page_config(page_title="Modatna", layout="wide")
 
-# ─── Load Lottie Animation ──────────────────────────────────────────
+# ─── Load Lottie Animations ─────────────────────────────────────────
 def load_lottieurl(url):
     try:
         r = requests.get(url)
         if r.status_code == 200:
             return r.json()
-    except Exception:
+    except:
         return None
 
-lottie_header = load_lottieurl("https://assets2.lottiefiles.com/packages/lf20_yr6zz3wv.json")
+lottie_header = load_lottieurl(
+    "https://assets2.lottiefiles.com/packages/lf20_yr6zz3wv.json"
+)
+lottie_cherry = load_lottieurl(
+    "https://assets8.lottiefiles.com/packages/lf20_s2lhbzqf.json"
+)
 
-# ─── Elegant CSS with Gradient, Grain & Typography ───────────────────
+# ─── Elegant CSS: Gradient, Grain, Floral Overlay & Typography ────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Serif+4:wght@400;600&display=swap');
 
-/* Background Gradient + Subtle Grain */
+/* Soft gradient + grain */
 .stApp {
   background:
     linear-gradient(180deg, #FDF6F0 0%, #FFF7E5 100%),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3'/></filter><rect width='100%' height='100%' filter='url(%23n)' fill='%23ffffff'/></svg>");
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3'/></filter><rect width='100%' height='100%' fill='%23fff' filter='url(%23n)'/></svg>");
   background-blend-mode: overlay;
   background-size: cover, 150px 150px;
   background-repeat: no-repeat, repeat;
+  position: relative;
+}
+
+/* Cherry blossom petals overlay */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: url('https://i.imgur.com/9PWj3Po.png') center/cover no-repeat;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* Transparent Lottie Containers */
@@ -57,13 +75,17 @@ h1, h2 {
   text-align: center;
   margin: 0;
 }
-h2 { font-size: 1.5rem; font-weight: 500; margin-bottom:10px; }
+h2 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
 
 /* Body Text */
 .css-18e3th9 p, .css-18e3th9 {
   font-family: 'Source Serif 4', serif;
   color: #3A2C27;
-  font-size:1rem;
+  font-size: 1rem;
 }
 
 /* Inputs & Tabs */
@@ -93,11 +115,15 @@ h2 { font-size: 1.5rem; font-weight: 500; margin-bottom:10px; }
 </style>
 """, unsafe_allow_html=True)
 
-# ─── Display Animated Header ────────────────────────────────────────
+# ─── Animated Header ───────────────────────────────────────────────
 if lottie_header:
     st_lottie(lottie_header, height=180, key="header", quality="high")
 
-# ─── Data Loading & Processing ──────────────────────────────────────
+# ─── Cherry Blossom Lottie (floating petals) ────────────────────────
+if lottie_cherry:
+    st_lottie(lottie_cherry, height=200, key="petals", loop=True, quality="high")
+
+# ─── Data Loading & Processing ─────────────────────────────────────
 @st.cache_data
 def load_and_process_data(path):
     df = pd.read_csv(path).dropna(subset=['Class Name','Rating','Title'])
@@ -106,8 +132,7 @@ def load_and_process_data(path):
     df['Value Retention %'] = df['Rating'] / 5
     df['Resale Price'] = df['Original Price'] * df['Value Retention %']
     texts = df['Title'].astype(str)
-    vect = TfidfVectorizer(stop_words='english', max_features=500)
-    X = vect.fit_transform(texts)
+    X = TfidfVectorizer(stop_words='english', max_features=500).fit_transform(texts)
     df['Cluster'] = KMeans(n_clusters=5, random_state=42).fit_predict(X)
     coords = PCA(n_components=2).fit_transform(X.toarray())
     df['PCA1'], df['PCA2'] = coords[:,0], coords[:,1]
@@ -117,19 +142,32 @@ def load_and_process_data(path):
 
 df = load_and_process_data("Womens Clothing E-Commerce Reviews.csv")
 
-# ─── App Layout ─────────────────────────────────────────────────────
-st.markdown("<h1>Modatna</h1><h2>Insights</h2>", unsafe_allow_html=True)
+# ─── App Layout ───────────────────────────────────────────────────
+st.markdown(
+    "<h1>Modatna</h1><h2>Insights</h2>",
+    unsafe_allow_html=True
+)
 
-tab1, tab2 = st.tabs(["💰 Value Trends", "🌸 Style Archetypes"])
+tab1, tab2 = st.tabs(["💰 Value Trends", "🌸 Style Archetypes"])  
 
 with tab1:
     st.header("Categories That Hold Their Value")
     cats = sorted(df['Class Name'].unique())
     selected = st.multiselect("Filter Categories", options=cats, default=cats)
     avg = df[df['Class Name'].isin(selected)].groupby('Class Name')['Resale Price'].mean().reset_index()
-    min_price = st.slider("Min Avg Resale ($)", float(avg['Resale Price'].min()), float(avg['Resale Price'].max()), value=float(avg['Resale Price'].quantile(0.25)))
+    min_price = st.slider(
+        "Min Avg Resale ($)",
+        float(avg['Resale Price'].min()),
+        float(avg['Resale Price'].max()),
+        float(avg['Resale Price'].quantile(0.25))
+    )
     filt = avg[avg['Resale Price'] >= min_price]
-    fig1 = px.bar(filt, x='Class Name', y='Resale Price', labels={'Resale Price':'Avg Resale ($)'}, color='Resale Price', color_continuous_scale='Purples')
+    fig1 = px.bar(
+        filt,
+        x='Class Name', y='Resale Price',
+        labels={'Resale Price':'Avg Resale ($)'},
+        color='Resale Price', color_continuous_scale='Purples'
+    )
     fig1.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
     st.plotly_chart(fig1, use_container_width=True)
 
@@ -140,14 +178,26 @@ with tab2:
     kw = st.text_input("Search Titles")
     if kw:
         df2 = df2[df2['Title'].str.contains(kw, case=False, na=False)]
-    fig2 = px.scatter(df2, x='PCA1', y='PCA2', color='Style Label', hover_data=['Title','Resale Price'], title="Style Cluster Projection")
+    fig2 = px.scatter(
+        df2, x='PCA1', y='PCA2', color='Style Label',
+        hover_data=['Title','Resale Price'],
+        title="Style Cluster Projection"
+    )
     fig2.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
     st.plotly_chart(fig2, use_container_width=True)
+
     sel = st.selectbox("Highlight Style", sorted(df2['Style Label'].unique()))
     sub = df2[df2['Style Label'] == sel]
-    fig3 = px.scatter(sub, x='PCA1', y='PCA2', color='Style Label', hover_data=['Title','Resale Price'], title=f"Items in {sel}")
+    fig3 = px.scatter(
+        sub, x='PCA1', y='PCA2', color='Style Label',
+        hover_data=['Title','Resale Price'],
+        title=f"Items in {sel}"
+    )
     fig3.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
     st.plotly_chart(fig3, use_container_width=True)
 
 st.markdown("---")
-st.markdown("<p style='text-align:center;'>Made with ❤️ by Ruth Sharon</p>", unsafe_allow_html=True)
+st.markdown(
+    "<p style='text-align:center;'>Made with ❤️ by Ruth Sharon</p>",
+    unsafe_allow_html=True
+)
