@@ -118,7 +118,7 @@ def load_and_process_data(path):
 df = load_and_process_data("Womens Clothing E-Commerce Reviews.csv")
 
 # ─── App Layout ─────────────────────────────────────────────────────
-st.markdown("<h1>Modatna</h1><h2>Elegance, Insight, & Fashion That Endures</h2>", unsafe_allow_html=True)
+st.markdown("<h1>Modatna</h1><h2>Insights</h2>", unsafe_allow_html=True)
 
 tab1, tab2 = st.tabs(["💰 Value Trends", "🌸 Style Archetypes"])
 
