@@ -11,14 +11,11 @@ import requests
 url = "https://github.com/ruth1445/modatna/raw/main/Womens%20Clothing%20E-Commerce%20Reviews.csv"
 st.write(f"CSV File URL: {url}")
 
-# Test by reading directly from URL
 df = pd.read_csv(url)
 st.write(df.head())
 
-# ─── Page Config ───────────────────────────────────────────────────
 st.set_page_config(page_title="Modatna", layout="wide")
 
-# ─── Load Lottie Animations ─────────────────────────────────────────
 def load_lottieurl(url):
     try:
         r = requests.get(url)
@@ -34,7 +31,6 @@ lottie_cherry = load_lottieurl(
     "https://assets8.lottiefiles.com/packages/lf20_s2lhbzqf.json"
 )
 
-# ─── Elegant CSS: Gradient, Grain, Floral Overlay & Typography ────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Serif+4:wght@400;600&display=swap');
@@ -123,15 +119,12 @@ h2 {
 </style>
 """, unsafe_allow_html=True)
 
-# ─── Animated Header ───────────────────────────────────────────────
 if lottie_header:
     st_lottie(lottie_header, height=180, key="header", quality="high")
 
-# ─── Cherry Blossom Lottie (floating petals) ────────────────────────
 if lottie_cherry:
     st_lottie(lottie_cherry, height=200, key="petals", loop=True, quality="high")
 
-# ─── Data Loading & Processing ─────────────────────────────────────
 @st.cache_data
 def load_and_process_data(path):
     df = pd.read_csv(path).dropna(subset=['Class Name','Rating','Title'])
@@ -150,7 +143,6 @@ def load_and_process_data(path):
 
 df = load_and_process_data("Womens Clothing E-Commerce Reviews.csv")
 
-# ─── App Layout ───────────────────────────────────────────────────
 st.markdown(
     "<h1>Modatna</h1><h2>Insights</h2>",
     unsafe_allow_html=True
