@@ -7,10 +7,8 @@ import plotly.express as px
 import requests
 from streamlit_lottie import st_lottie
 
-# ─── Page config ───────────────────────────────────────────────────
 st.set_page_config(page_title="Modatna", layout="wide")
 
-# ─── Load Lottie animation ──────────────────────────────────────────
 def load_lottieurl(url):
     try:
         r = requests.get(url)
@@ -21,7 +19,6 @@ def load_lottieurl(url):
 
 lottie_header = load_lottieurl("https://assets2.lottiefiles.com/packages/lf20_yr6zz3wv.json")
 
-# ─── Elegant CSS with transparent Lottie ────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&display=swap');
@@ -85,11 +82,9 @@ h2 { font-weight: 400; margin-bottom: 20px; }
 </style>
 """, unsafe_allow_html=True)
 
-# ─── Display animated header ─────────────────────────────────────────
 if lottie_header:
     st_lottie(lottie_header, height=180, key="header", quality="high")
 
-# ─── Data loading & processing ───────────────────────────────────────
 @st.cache_data
 def load_and_process_data(path):
     df = pd.read_csv(path).dropna(subset=['Class Name','Rating','Title'])
@@ -112,7 +107,6 @@ def load_and_process_data(path):
 
 df = load_and_process_data("Womens Clothing E-Commerce Reviews.csv")
 
-# ─── App layout ─────────────────────────────────────────────────────
 st.markdown("<h1>Modatna</h1><h2>Value & Style Insights</h2>", unsafe_allow_html=True)
 tab1, tab2 = st.tabs(["💰 Value Trends","🌈 Style Archetypes"])
 
