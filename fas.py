@@ -6,17 +6,14 @@ from sklearn.decomposition import PCA
 import plotly.express as px
 import requests
 from streamlit_lottie import st_lottie
-import requests
-
-url = "https://github.com/ruth1445/modatna/raw/main/Womens%20Clothing%20E-Commerce%20Reviews.csv"
-st.write(f"CSV File URL: {url}")
-
-df = pd.read_csv(url)
-st.write(df.head())
 
 st.set_page_config(page_title="Modatna", layout="wide")
 
-def load_lottieurl(url):
+#— Raw GitHub URL for the CSV
+url = "https://github.com/ruth1445/modatna/raw/main/Womens%20Clothing%20E-Commerce%20Reviews.csv"
+st.write(f"CSV File URL: {url}")
+
+def load_lottieurl(url: str):
     try:
         r = requests.get(url)
         if r.status_code == 200:
@@ -24,12 +21,8 @@ def load_lottieurl(url):
     except:
         return None
 
-lottie_header = load_lottieurl(
-    "https://assets2.lottiefiles.com/packages/lf20_yr6zz3wv.json"
-)
-lottie_cherry = load_lottieurl(
-    "https://assets8.lottiefiles.com/packages/lf20_s2lhbzqf.json"
-)
+lottie_header = load_lottieurl("https://assets2.lottiefiles.com/packages/lf20_yr6zz3wv.json")
+lottie_cherry = load_lottieurl("https://assets8.lottiefiles.com/packages/lf20_s2lhbzqf.json")
 
 st.markdown("""
 <style>
@@ -121,40 +114,47 @@ h2 {
 
 if lottie_header:
     st_lottie(lottie_header, height=180, key="header", quality="high")
-
 if lottie_cherry:
     st_lottie(lottie_cherry, height=200, key="petals", loop=True, quality="high")
 
 @st.cache_data
-def load_and_process_data(path):
+def load_and_process_data(path: str) -> pd.DataFrame:
     df = pd.read_csv(path).dropna(subset=['Class Name','Rating','Title'])
-    price_map = {'Blouses':45,'Dresses':80,'Pants':60,'Jackets':120,'Sweaters':70}
-    df['Original Price'] = df['Class Name'].map(price_map).fillna(50)
-    df['Value Retention %'] = df['Rating'] / 5
-    df['Resale Price'] = df['Original Price'] * df['Value Retention %']
+    price_map = {'Blouses':45, 'Dresses':80, 'Pants':60, 'Jackets':120, 'Sweaters':70}
+    df['Original Price']     = df['Class Name'].map(price_map).fillna(50)
+    df['Value Retention %']  = df['Rating'] / 5
+    df['Resale Price']       = df['Original Price'] * df['Value Retention %']
     texts = df['Title'].astype(str)
     X = TfidfVectorizer(stop_words='english', max_features=500).fit_transform(texts)
     df['Cluster'] = KMeans(n_clusters=5, random_state=42).fit_predict(X)
     coords = PCA(n_components=2).fit_transform(X.toarray())
     df['PCA1'], df['PCA2'] = coords[:,0], coords[:,1]
-    style_map = {0:'Cottagecore Vintage',1:'Minimalist Luxe',2:'Playful Femme',3:'Classic Formal',4:'Street Chic'}
+    style_map = {
+        0: 'Cottagecore Vintage',
+        1: 'Minimalist Luxe',
+        2: 'Playful Femme',
+        3: 'Classic Formal',
+        4: 'Street Chic'
+    }
     df['Style Label'] = df['Cluster'].map(style_map)
     return df
 
-df = load_and_process_data("Womens Clothing E-Commerce Reviews.csv")
+df = load_and_process_data(url)
 
-st.markdown(
-    "<h1>Modatna</h1><h2>Insights</h2>",
-    unsafe_allow_html=True
-)
+st.markdown("<h1>Modatna</h1><h2>Insights</h2>", unsafe_allow_html=True)
 
-tab1, tab2 = st.tabs(["💰 Value Trends", "🌸 Style Archetypes"])  
+tab1, tab2 = st.tabs(["💰 Value Trends", "🌸 Style Archetypes"])
 
 with tab1:
     st.header("Categories That Hold Their Value")
-    cats = sorted(df['Class Name'].unique())
+    cats     = sorted(df['Class Name'].unique())
     selected = st.multiselect("Filter Categories", options=cats, default=cats)
-    avg = df[df['Class Name'].isin(selected)].groupby('Class Name')['Resale Price'].mean().reset_index()
+    avg      = (
+        df[df['Class Name'].isin(selected)]
+        .groupby('Class Name')['Resale Price']
+        .mean()
+        .reset_index()
+    )
     min_price = st.slider(
         "Min Avg Resale ($)",
         float(avg['Resale Price'].min()),
@@ -166,7 +166,8 @@ with tab1:
         filt,
         x='Class Name', y='Resale Price',
         labels={'Resale Price':'Avg Resale ($)'},
-        color='Resale Price', color_continuous_scale='Purples'
+        color='Resale Price',
+        color_continuous_scale='Purples'
     )
     fig1.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
     st.plotly_chart(fig1, use_container_width=True)
@@ -174,10 +175,11 @@ with tab1:
 with tab2:
     st.header("Explore Style Archetypes")
     min_r = st.slider("Min Value Retention %", 0.0, 1.0, 0.2, step=0.05)
-    df2 = df[df['Value Retention %'] >= min_r]
-    kw = st.text_input("Search Titles")
+    df2   = df[df['Value Retention %'] >= min_r]
+    kw    = st.text_input("Search Titles")
     if kw:
         df2 = df2[df2['Title'].str.contains(kw, case=False, na=False)]
+
     fig2 = px.scatter(
         df2, x='PCA1', y='PCA2', color='Style Label',
         hover_data=['Title','Resale Price'],
