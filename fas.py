@@ -13,6 +13,13 @@ st.set_page_config(page_title="Modatna", layout="wide")
 #— Raw GitHub URL (note raw.githubusercontent.com)
 url = "https://raw.githubusercontent.com/ruth1445/modatna/main/Womens%20Clothing%20E-Commerce%20Reviews.csv"
 
+#— Display URL in white
+st.markdown(
+    f"<p style='color:white; font-size:14px;'>CSV File URL: "
+    f"<a href='{url}' style='color:white; text-decoration:underline;' target='_blank'>{url}</a></p>",
+    unsafe_allow_html=True
+)
+
 #— Lottie loader
 def load_lottieurl(u: str):
     try:
@@ -25,101 +32,14 @@ def load_lottieurl(u: str):
 lottie_header = load_lottieurl("https://assets2.lottiefiles.com/packages/lf20_yr6zz3wv.json")
 lottie_cherry = load_lottieurl("https://assets8.lottiefiles.com/packages/lf20_s2lhbzqf.json")
 
-#— Custom CSS for very light pink/white gradient background
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Serif+4:wght@400;600&display=swap');
+#— Custom CSS...
+st.markdown("""<style>/* your CSS here */</style>""", unsafe_allow_html=True)
 
-.stApp {
-  background:
-    linear-gradient(180deg, #ffffff 0%, #ffeef2 50%, #ffffff 100%),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3'/></filter><rect width='100%' height='100%' fill='%23fff' filter='url(%23n)'/></svg>");
-  background-blend-mode: overlay;
-  background-size: cover, 150px 150px;
-  background-repeat: no-repeat, repeat;
-  position: relative;
-}
-
-/* Cherry blossom petals overlay */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: url('https://i.imgur.com/9PWj3Po.png') center/cover no-repeat;
-  opacity: 0.04;
-  pointer-events: none;
-  z-index: -1;
-}
-
-/* Transparent Lottie Containers */
-.lottie-container, .streamlit-lottie, canvas, div[class*="lottie"] {
-  background: transparent !important;
-}
-
-/* Slide-in Animation */
-@keyframes fadeSlide {
-  from { transform: translateY(20px); opacity: 0; }
-  to   { transform: translateY(0); opacity: 1; }
-}
-.block-container, .stContainer > div {
-  animation: fadeSlide 0.8s ease-out forwards;
-}
-
-/* Headers */
-h1, h2 {
-  font-family: 'Playfair Display', serif !important;
-  color: #493C3C !important;
-  text-align: center;
-  margin: 0;
-}
-h2 {
-  font-size: 1.5rem;
-  font-weight: 500;
-  margin-bottom: 10px;
-}
-
-/* Body Text */
-.css-18e3th9 p, .css-18e3th9 {
-  font-family: 'Source Serif 4', serif;
-  color: #3A2C27;
-  font-size: 1rem;
-}
-
-/* Inputs & Tabs */
-[data-testid="stTextInput"] input,
-[data-testid="stMultiselect"] input,
-[data-testid="stSelectbox"] > div > div,
-[data-testid="stSlider"] > div > div {
-  background: rgba(255,255,255,0.6) !important;
-  backdrop-filter: blur(3px);
-  border-radius: 8px;
-  color: #3A2C27;
-}
-.stTabs [role="tab"] {
-  font-family: 'Playfair Display', serif;
-  font-size: 1rem;
-  color: #7a5c56;
-}
-.stTabs [role="tab"][data-selected='true'] {
-  color: #493C3C;
-  border-bottom: 2px solid #493C3C;
-}
-
-/* Transparent Plotly */
-.js-plotly-plot .plot-container .svg-container {
-  background: transparent !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
-#— Display Lottie animations
 if lottie_header:
     st_lottie(lottie_header, height=180, key="header", quality="high")
 if lottie_cherry:
     st_lottie(lottie_cherry, height=200, key="petals", loop=True, quality="high")
 
-#— Data loading + processing (cached)
 @st.cache_data
 def load_and_process_data(path: str) -> pd.DataFrame:
     df = pd.read_csv(path).dropna(subset=['Class Name','Rating','Title'])
@@ -139,20 +59,17 @@ def load_and_process_data(path: str) -> pd.DataFrame:
     df['Style Label'] = df['Cluster'].map(style_map)
     return df
 
-#— Load & process from GitHub
 df = load_and_process_data(url)
 
-#— Main title
 st.markdown("<h1>Modatna</h1><h2>Insights</h2>", unsafe_allow_html=True)
 
-#— Tabs
 tab1, tab2 = st.tabs(["💰 Value Trends", "🌸 Style Archetypes"])
 
 with tab1:
     st.header("Categories That Hold Their Value")
-    cats     = sorted(df['Class Name'].unique())
+    cats = sorted(df['Class Name'].unique())
     selected = st.multiselect("Filter Categories", options=cats, default=cats)
-    avg      = (
+    avg = (
         df[df['Class Name'].isin(selected)]
         .groupby('Class Name')['Resale Price']
         .mean().reset_index()
@@ -175,8 +92,8 @@ with tab1:
 with tab2:
     st.header("Explore Style Archetypes")
     min_r = st.slider("Min Value Retention %", 0.0, 1.0, 0.2, step=0.05)
-    df2   = df[df['Value Retention %'] >= min_r]
-    kw    = st.text_input("Search Titles")
+    df2 = df[df['Value Retention %'] >= min_r]
+    kw = st.text_input("Search Titles")
     if kw:
         df2 = df2[df2['Title'].str.contains(kw, case=False, na=False)]
 
@@ -196,9 +113,5 @@ with tab2:
     fig3.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
     st.plotly_chart(fig3, use_container_width=True)
 
-#— Footer
 st.markdown("---")
-st.markdown(
-    "<p style='text-align:center;'>Made with ❤️ by Ruth Sharon</p>",
-    unsafe_allow_html=True
-)
+st.markdown("<p style='text-align:center;'>Made with ❤️ by Ruth Sharon</p>", unsafe_allow_html=True)
