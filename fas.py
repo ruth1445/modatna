@@ -7,20 +7,17 @@ import plotly.express as px
 import requests
 from streamlit_lottie import st_lottie
 
-#— Configure page
 st.set_page_config(page_title="Modatna", layout="wide")
 
-#— Raw GitHub URL (note raw.githubusercontent.com)
+# Raw GitHub URL 
 url = "https://raw.githubusercontent.com/ruth1445/modatna/main/Womens%20Clothing%20E-Commerce%20Reviews.csv"
 
-#— Display URL in white
 st.markdown(
     f"<p style='color:white; font-size:14px;'>CSV File URL: "
     f"<a href='{url}' style='color:white; text-decoration:underline;' target='_blank'>{url}</a></p>",
     unsafe_allow_html=True
 )
 
-#— Lottie loader
 def load_lottieurl(u: str):
     try:
         r = requests.get(u)
@@ -32,7 +29,6 @@ def load_lottieurl(u: str):
 lottie_header = load_lottieurl("https://assets2.lottiefiles.com/packages/lf20_yr6zz3wv.json")
 lottie_cherry = load_lottieurl("https://assets8.lottiefiles.com/packages/lf20_s2lhbzqf.json")
 
-#— Custom CSS...
 st.markdown("""<style>/* your CSS here */</style>""", unsafe_allow_html=True)
 
 if lottie_header:
